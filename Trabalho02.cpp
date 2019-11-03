@@ -119,40 +119,142 @@ int main()
 			}
 		}
 	}
-	
-	for (auto item : _points) {
-		cv::circle(img, item, 1, cv::Scalar(255, 0, 255), -1, 1);
-	}
 
 	cv::Mat_<float> M(3,3), N(3,1);
-	for (size_t i = 0; i < 3; i++)
-	{
-		int num = std::rand() % _points.size() + 1;
-		for (size_t j = 0; j < 3; j++)
-		{
-			if (j == 0)
-				M(i, j) = cv::pow(_points[num].x,2);
-			if (j == 1)
-				M(i, j) = _points[num].x;
-			if (j == 2)
-				M(i, j) = 1;
-		}
-		N(i, 0) = _points[num].y;
-	}
 	cv::Mat_<float> out;
-	std::cout << M << std::endl;
-	std::cout << N << std::endl;
+	bool endIteration = true;
+	int index_ransanc[3];
+	int threshld = 2;
+	int num = 0, colector = 0;
+	bool a = true;
+	float dist, dist1, dist2, general;
+	std::vector<cv::Point> _tmpPoint;
+	for (int ij = 0; ij < 1000; ij++ )
+	{
+		for (size_t i = 0; i < 3; i++)
+		{
+			num = std::rand() % _points.size() + 1;
+			index_ransanc[i] = num;
+			for (size_t j = 0; j < 3; j++)
+			{
+				if (j == 0)
+					M(i, j) = cv::pow(_points[num].x, 2);
+				if (j == 1)
+					M(i, j) = _points[num].x;
+				if (j == 2)
+					M(i, j) = 1;
+			}
+			N(i, 0) = _points[num].y;
+		}
 
-	if (cv::solve(M, N, out, cv::DECOMP_LU))
+		if (cv::solve(M, N, out, cv::DECOMP_LU))
+		{
+			//std::cout << out << std::endl;
+			for (auto _point : _points)
+			{
+				
+				general = std::sqrtf(out.at<float>(1, 0) - 4 * out.at<float>(0, 0) * (out.at<float>(2, 0) - _point.y));
+				dist1 = std::sqrtf(std::pow(_point.x - (-out.at<float>(1, 0) - general) / (2 * out.at<float>(0, 0)), 2));
+				dist2 = std::sqrtf(std::pow(_point.x - (-out.at<float>(1, 0) + general) / (2 * out.at<float>(0, 0)), 2));
+				if (dist1 > dist2)
+				{
+					dist = dist2;
+				}
+				else 
+				{
+					dist = dist1;
+				}
+
+				if (threshld >= dist)
+				{
+					_tmpPoint.push_back(_point);					
+				}
+			}
+			if (ij == 0)
+			{
+				colector = _tmpPoint.size();
+				_tmpPoint.clear();
+			}
+			else
+			{
+				if (colector > _tmpPoint.size())
+				{
+					colector = colector;
+				}
+				else {
+					colector = _tmpPoint.size();
+				}
+			}
+		}			
+		else 
+		{
+			std::cout << "Cant solve this system" << std::endl;
+		}
+	}
+	
+	//std::cout << M << std::endl;
+	//std::cout << N << std::endl;
+
+	/*
+	for (auto item : _points) 
+	{
+		cv::circle(img, item, 1, cv::Scalar(0, 0, 255), -1, 1);
+	}
+	*/
+	/*
+	for (auto item : _tmpPoint) {
+		cv::circle(img, item, 1, cv::Scalar(255, 0, 0), -1, 1);
+	}
+	*/
+	cv::Mat_<float> M1(3, 3);
+	M1 = cv::Mat::zeros(3,3, CV_32F);
+	cv::Mat_<float> N1(3, 1);
+	N1 = cv::Mat::zeros(3, 1, CV_32F);
+
+	M1.at<float>(0, 0) = _tmpPoint.size();
+	for (int i = 0; i < _tmpPoint.size(); i++)
+	{
+		M1.at<float>(1, 0) += _tmpPoint[i].x;
+		M1.at<float>(0, 1) += _tmpPoint[i].x;
+
+		M1.at<float>(2, 0) += std::pow(_tmpPoint[i].x, 2);
+		M1.at<float>(1, 1) += std::pow(_tmpPoint[i].x, 2);
+		M1.at<float>(0, 2) += std::pow(_tmpPoint[i].x, 2);
+
+		M1.at<float>(1, 2) += std::pow(_tmpPoint[i].x, 3);
+		M1.at<float>(2, 1) += std::pow(_tmpPoint[i].x, 3);
+
+		M1.at<float>(2, 2) += std::pow(_tmpPoint[i].x, 4);
+
+		N1.at<float>(0, 0) += _tmpPoint[i].y;
+		N1.at<float>(1, 0) += _tmpPoint[i].x * _tmpPoint[i].y;
+		N1.at<float>(2, 0) += std::pow(_tmpPoint[i].x, 2) * _tmpPoint[i].y;
+	}
+
+
+	std::cout << M1 << std::endl;
+	std::cout << N1 << std::endl;
+	cv::Mat_<float> out1;
+	if (cv::solve(M1, N1, out1, cv::DECOMP_LU))
+	{
+		std::cout << out1 << std::endl;
 		std::cout << out << std::endl;
+	}
 	else
+	{
 		std::cout << "Cant solve this system" << std::endl;
-
-
+	}
+	/*
 	for (size_t i = 0; i < 900; i++)
 	{
 		cv::circle(img, cv::Point(i, out.at<float>(0, 0)* std::pow(i, 2) + out.at<float>(1, 0) * i + out.at<float>(2, 0)), 1, cv::Scalar(255, 255, 0), -1, 2);		
 	}
+	*/
+	for (size_t i = 0; i < 900; i++)
+	{
+		cv::circle(img, cv::Point(i, out1.at<float>(2, 0) * std::pow(i, 2) + out1.at<float>(1, 0) * i + out1.at<float>(0, 0)), 2, cv::Scalar(0, 255, 255), -1, 4);
+	}
+
 	//cv::circle(img, cv::Point(-(10 - c) * gradient1, 10), 32, cv::Scalar(255, 255, 0), -1, 32);
 	//cv::circle(img, cv::Point(-(img.rows - 50 - c) * gradient1, img.rows - 50), 32, cv::Scalar(255, 255, 0), -1, 32);
 
