@@ -250,10 +250,40 @@ int main()
 		cv::circle(img, cv::Point(i, out.at<float>(0, 0)* std::pow(i, 2) + out.at<float>(1, 0) * i + out.at<float>(2, 0)), 1, cv::Scalar(255, 255, 0), -1, 2);		
 	}
 	*/
-	for (size_t i = 0; i < 900; i++)
+	float rotation_edge_x = 0;
+	float rotation_edge_y = 0;
+	float const  PI = 3.1415926536;
+	float edge = 0; 
+	if (imgName == "exemplo1")
 	{
-		cv::circle(img, cv::Point(i, out1.at<float>(2, 0) * std::pow(i, 2) + out1.at<float>(1, 0) * i + out1.at<float>(0, 0)), 2, cv::Scalar(0, 255, 255), -1, 4);
+		for (size_t i = 0; i < 900; i++)
+		{
+			cv::circle(img, cv::Point(i, out1.at<float>(2, 0) * std::pow(i, 2) + out1.at<float>(1, 0) * i + out1.at<float>(0, 0)), 2, cv::Scalar(0, 255, 255), -1, 4);
+		}
 	}
+	else if (imgName == "exemplo2")
+	{
+		edge = -30 * (PI / 180);
+		for (size_t i = 0; i < 900; i++)
+		{	
+
+			rotation_edge_x = i * std::cos(edge) - (out1.at<float>(2, 0) * std::pow(i, 2) + out1.at<float>(1, 0) * i + out1.at<float>(0, 0)) * std::sin(edge);
+			rotation_edge_y = (out1.at<float>(2, 0) * std::pow(i, 2) + out1.at<float>(1, 0) * i + out1.at<float>(0, 0)) * std::cos(edge) + i * std::sin(edge);
+			cv::circle(img, cv::Point(rotation_edge_x, rotation_edge_y), 2, cv::Scalar(0, 255, 255), -1, 4);
+		}
+
+	}
+	else if (imgName == "exemplo3")
+	{
+		edge = -20 * (PI / 180);
+		for (size_t i = 0; i < 900; i++)
+		{
+
+			rotation_edge_x = i * std::cos(edge) - (out1.at<float>(2, 0) * std::pow(i, 2) + out1.at<float>(1, 0) * i + out1.at<float>(0, 0)) * std::sin(edge);
+			rotation_edge_y = (out1.at<float>(2, 0) * std::pow(i, 2) + out1.at<float>(1, 0) * i + out1.at<float>(0, 0)) * std::cos(edge) + i * std::sin(edge);
+			cv::circle(img, cv::Point(rotation_edge_x, rotation_edge_y), 2, cv::Scalar(0, 255, 255), -1, 4);
+		}
+	}	
 
 	//cv::circle(img, cv::Point(-(10 - c) * gradient1, 10), 32, cv::Scalar(255, 255, 0), -1, 32);
 	//cv::circle(img, cv::Point(-(img.rows - 50 - c) * gradient1, img.rows - 50), 32, cv::Scalar(255, 255, 0), -1, 32);
