@@ -63,7 +63,7 @@ int main()
 	double _theta = 0;
 	if (imgName == "exemplo1")
 	{
-		_theta = std::atanf((gradient1 - 1) / (1 + gradient1 * 1)) * (180 / PI);
+		_theta = std::atanf((gradient1 - 1) / (1 + gradient1 * 1)) ;
 		std::cout << "Example1: " << _theta << std::endl;
 	}
 	else
@@ -121,6 +121,9 @@ int main()
 	}
 	if (imgName == "exemplo1")
 	{
+		rotateMatrix = cv::getRotationMatrix2D(cv::Point(img.cols / 2, img.rows / 2), -_theta, 1);
+		cv::warpAffine(imgThreshold, imgRotate, rotateMatrix, cv::Size(imgThreshold.cols, imgThreshold.rows));
+		cv::warpAffine(img, imgRotateColor, rotateMatrix, cv::Size(imgThreshold.cols, imgThreshold.rows));
 		imgRotate = imgThreshold;
 	}
 	std::vector<cv::Point> _points;
@@ -141,10 +144,10 @@ int main()
 	cv::Mat_<float> out;
 	bool endIteration = true;
 	int index_ransanc[3];
-	int threshld = 3;
+	float threshld = 1;
 	int num = 0, colector = 0;
 	bool a = true;
-	float dist, dist1, dist2, general;
+	float dist, dist1 = 0, dist2 = 0, general = 0;
 	std::vector<cv::Point> _tmpPoint;
 	for (int ij = 0; ij < 1000; ij++)
 	{
@@ -169,7 +172,6 @@ int main()
 			//std::cout << out << std::endl;
 			for (auto _point : _points)
 			{
-
 				general = std::sqrtf(out.at<float>(1, 0) - 4 * out.at<float>(0, 0) * (out.at<float>(2, 0) - _point.y));
 				dist1 = std::sqrtf(std::pow(_point.x - (-out.at<float>(1, 0) - general) / (2 * out.at<float>(0, 0)), 2));
 				dist2 = std::sqrtf(std::pow(_point.x - (-out.at<float>(1, 0) + general) / (2 * out.at<float>(0, 0)), 2));
@@ -191,17 +193,16 @@ int main()
 			{
 				colector = _tmpPoint.size();
 				_tmpPoint.clear();
+				std::cout << 1 << std::endl;
 			}
 			else
 			{
 				if (colector > _tmpPoint.size())
 				{
-					colector = colector;					
-					//_tmpPoint.clear();
+					colector = colector;
 				}
 				else {
 					colector = _tmpPoint.size();
-					_tmpPoint.clear();
 				}
 			}
 		}
@@ -272,42 +273,16 @@ int main()
 	float rotation_edge_x = 0;
 	float rotation_edge_y = 0;
 	
-	float edge = 0;
+	float edge = -_theta * (PI / 180);
 	float _x1 = 0, _y1 = 0;
-	if (imgName == "exemplo1")
+	for (int i = -900; i < 900; i++)
 	{
-		for (size_t i = 0; i < 900; i++)
-		{
-			cv::circle(img, cv::Point(i, out1.at<float>(2, 0) * std::pow(i, 2) + out1.at<float>(1, 0) * i + out1.at<float>(0, 0)), 2, cv::Scalar(0, 255, 255), -1, 4);
-		}
-	}
-	else if (imgName == "exemplo2")
-	{
-		edge = -_theta * (PI / 180);
-		for (int i = -900; i < 900; i++)
-		{
-			_x1 = i - img.cols / 2;
-			_y1 = (out1.at<float>(2, 0) * std::pow(i, 2) + out1.at<float>(1, 0) * i + out1.at<float>(0, 0)) - img.rows / 2;
-			rotation_edge_x = (_x1)*std::cos(edge) - (_y1)*std::sin(edge) + img.cols / 2;
-			rotation_edge_y = (_x1)*std::sin(edge) + (_y1)*std::cos(edge) + img.rows / 2;
-			cv::circle(img, cv::Point(rotation_edge_x, rotation_edge_y), 2, cv::Scalar(0, 255, 255), -1, cv::LINE_AA);
-			//cv::circle(imgRotateColor, cv::Point(i, out.at<float>(0, 0)* std::pow(i, 2) + out.at<float>(1, 0) * i + out.at<float>(2, 0)), 1, cv::Scalar(255, 255, 0), -1, 2);
-		}
-
-	}
-	else if (imgName == "exemplo3")
-	{
-		edge = -30 * (PI / 180);
-
-		for (int i = -900; i < 900; i++)
-		{
-			_x1 = i - img.cols / 2;
-			_y1 = (out1.at<float>(2, 0) * std::pow(i, 2) + out1.at<float>(1, 0) * i + out1.at<float>(0, 0)) - img.rows / 2;
-			rotation_edge_x = (_x1)*std::cos(edge) - (_y1)*std::sin(edge) + img.cols / 2;
-			rotation_edge_y = (_x1)*std::sin(edge) + (_y1)*std::cos(edge) + img.rows / 2;
-			cv::circle(img, cv::Point(rotation_edge_x, rotation_edge_y), 2, cv::Scalar(0, 255, 255), -1, cv::LINE_AA);
-			//cv::circle(imgRotateColor, cv::Point(i, out.at<float>(0, 0)* std::pow(i, 2) + out.at<float>(1, 0) * i + out.at<float>(2, 0)), 1, cv::Scalar(255, 255, 0), -1, 2);
-		}
+		_x1 = i - img.cols / 2;
+		_y1 = (out1.at<float>(2, 0) * std::pow(i, 2) + out1.at<float>(1, 0) * i + out1.at<float>(0, 0)) - img.rows / 2;
+		rotation_edge_x = (_x1)*std::cos(edge) - (_y1)*std::sin(edge) + img.cols / 2;
+		rotation_edge_y = (_x1)*std::sin(edge) + (_y1)*std::cos(edge) + img.rows / 2;
+		cv::circle(img, cv::Point(rotation_edge_x, rotation_edge_y), 2, cv::Scalar(0, 255, 255), -1, cv::LINE_AA);
+		//cv::circle(imgRotateColor, cv::Point(i, out.at<float>(0, 0)* std::pow(i, 2) + out.at<float>(1, 0) * i + out.at<float>(2, 0)), 1, cv::Scalar(255, 255, 0), -1, 2);
 	}
 
 	cv::imshow("Color Image", img);
